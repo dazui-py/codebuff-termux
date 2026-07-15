@@ -1,0 +1,74 @@
+name: Build Freebuff for Termux ARM64
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-freebuff-aarch64:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build inside Arch ARM64
+        uses: uraimo/run-on-arch-action@v3
+        with:
+          arch: aarch64
+          distro: archarm_latest
+          githubToken: ${{ github.token }}
+
+          setup: |
+            mkdir -p "${PWD}/artifacts"
+
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+
+          install: |
+            pacman-key --init
+            pacman-key --populate archlinuxarm || true
+
+            pacman -Syu --noconfirm --needed \
+              base-devel \
+              git \
+              curl \
+              unzip \
+              nodejs \
+              npm \
+              python \
+              make \
+              gcc \
+              pkgconf
+
+            npm install -g bun
+
+          run: |
+            set -eux
+
+            cd /home
+
+            git clone https://github.com/CodebuffAI/codebuff.git
+            cd codebuff
+
+            sed -i '/"os":/d' freebuff/package.json
+
+            bun install
+
+            cd freebuff
+
+            bun cli/build.ts 0.0.124
+
+            npm pack
+
+            cp *.tgz /artifacts/
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: freebuff-termux-arm64
+          path: artifacts/*.tgz
