@@ -53,6 +53,37 @@ jobs:
             export PATH="$BUN_INSTALL/bin:$PATH"
 
           bun --version
+      - name: Patch platform restrictions
+          run: |
+            python - <<'PY'
+            import json
+            from pathlib import Path
+
+            files = [
+                "cli/release/package.json",
+                "cli/release-staging/package.json",
+                "freebuff/cli/release/package.json"
+            ]
+
+            for file in files:
+                p = Path(file)
+
+                if p.exists():
+                    data = json.loads(p.read_text())
+
+                    removed = []
+
+                for key in ["os", "cpu"]:
+                    if key in data:
+                        removed.append(key)
+                        del data[key]
+
+                p.write_text(
+                    json.dumps(data, indent=2) + "\n"
+                )
+
+                print(f"{file}: removed {removed}")
+            PY
 
           run: |
             set -eux
@@ -61,8 +92,6 @@ jobs:
 
             git clone https://github.com/CodebuffAI/codebuff.git
             cd codebuff
-
-            sed -i '/"os":/d' freebuff/package.json
 
             bun install
 

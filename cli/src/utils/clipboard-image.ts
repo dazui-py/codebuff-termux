@@ -4,6 +4,7 @@ import os from 'os'
 import path from 'path'
 
 import { isImageFile, resolveFilePath } from './image-handler'
+import { isTermux } from './platform'
 
 export interface ClipboardImageResult {
   success: boolean
@@ -481,6 +482,10 @@ function readClipboardFilePathWindows(): string | null {
  * Returns the file path if found, null otherwise.
  */
 function readClipboardFilePathLinux(): string | null {
+  if (isTermux) {
+    return null
+  }
+
   try {
     // Try to get file URI from clipboard
     let result = spawnSync('xclip', [
@@ -554,12 +559,34 @@ export function readClipboardImageFilePath(): string | null {
   return null
 }
 
+
+function readClipboardTextTermux(): string | null {
+  try {
+    const result = spawnSync('termux-clipboard-get', [], {
+      encoding: 'utf-8',
+      timeout: 1000,
+    })
+
+    if (result.status === 0 && result.stdout) {
+      return result.stdout.replace(/\n+$/, '')
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Read text from clipboard. Returns null if reading fails.
  */
 export function readClipboardText(): string | null {
   try {
-    const platform = process.platform
+    if (isTermux) {
+    return readClipboardTextTermux()
+  }
+
+  const platform = process.platform
     let result: ReturnType<typeof spawnSync>
     
     switch (platform) {

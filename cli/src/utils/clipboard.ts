@@ -2,6 +2,7 @@ import { closeSync, openSync, writeSync } from 'fs'
 import { createRequire } from 'module'
 
 import { getCliEnv } from './env'
+import { isTermux } from './platform'
 import { logger } from './logger'
 
 // Global renderer reference for clipboard operations.
@@ -186,6 +187,8 @@ function tryCopyViaPlatformTool(text: string): boolean {
   try {
     if (process.platform === 'darwin') {
       execSync('pbcopy', opts)
+    } else if (isTermux) {
+      execSync('termux-clipboard-set', opts)
     } else if (process.platform === 'linux') {
       try {
         execSync('xclip -selection clipboard', opts)
@@ -197,6 +200,7 @@ function tryCopyViaPlatformTool(text: string): boolean {
     } else {
       return false
     }
+
     return true
   } catch {
     return false

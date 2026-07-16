@@ -48,6 +48,16 @@ export async function safeOpen(url: string): Promise<boolean> {
   }
 
   try {
+    if (isTermux) {
+      const subprocess = Bun.spawn(['termux-open', url])
+      return subprocess
+    }
+
+    if (isTermux) {
+      const subprocess = Bun.spawn(['termux-open', url])
+      return subprocess
+    }
+
     const subprocess = await open(url)
     // With the default `wait: false`, spawn failures can surface on the
     // child's 'error' event after the promise resolves; without a listener

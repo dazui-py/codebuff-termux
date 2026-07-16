@@ -94,7 +94,15 @@ const buildEditorCommands = (
   } else if (isWindows) {
     commands.push(`start "" ${escapeForCmd(filePath)}`)
   } else {
-    commands.push(`xdg-open ${shellPath}`)
+    if (isTermux) {
+      commands.push(`termux-open ${shellPath}`)
+    } else {
+      if (isTermux) {
+      commands.push(`termux-open ${shellPath}`)
+    } else {
+      commands.push(`xdg-open ${shellPath}`)
+    }
+    }
   }
 
   return [...new Set(commands)]

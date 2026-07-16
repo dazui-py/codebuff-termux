@@ -86,7 +86,11 @@ function spawnPosixWatchdog(overrideFd: number | null): ChildProcess {
   // watchdog's stdout (see stdio below). The payload contains no quotes, so
   // embedding it in single quotes is safe.
   const script = `cat >/dev/null 2>&1; printf '${printfPayload()}'`
-  return spawn('/bin/sh', ['-c', script, 'terminal-reset-watchdog'], {
+  return spawn(Bun.which('sh') ?? '/bin/sh', [
+    '-c',
+    script,
+    'terminal-reset-watchdog',
+  ], {
     detached: true,
     stdio: ['pipe', overrideFd ?? 'inherit', 'ignore'],
   })
