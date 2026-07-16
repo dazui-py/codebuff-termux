@@ -50,6 +50,8 @@ jobs:
           run: |
             set -eux
 
+            source ~/.bashrc
+
             # Patch package.json platform restrictions
             python - <<'PY'
             import json
