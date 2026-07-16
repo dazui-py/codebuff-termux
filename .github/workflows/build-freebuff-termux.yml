@@ -24,14 +24,11 @@ jobs:
 
           setup: |
             mkdir -p "${PWD}/artifacts"
-
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-
           install: |
             pacman-key --init
             pacman-key --populate archlinuxarm || true
-
             pacman -Syu --noconfirm --needed \
               base-devel \
               git \
@@ -43,65 +40,47 @@ jobs:
               make \
               gcc \
               pkgconf
-
             curl -fsSL https://bun.sh/install | bash
-
             echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
             echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
-
             export BUN_INSTALL="$HOME/.bun"
             export PATH="$BUN_INSTALL/bin:$PATH"
-
             bun --version
-      - name: Patch platform restrictions
-        run: |
+
+          run: |
+            set -eux
+
+            # Patch package.json platform restrictions
             python - <<'PY'
             import json
             from pathlib import Path
-
             files = [
                 "cli/release/package.json",
                 "cli/release-staging/package.json",
                 "freebuff/cli/release/package.json"
             ]
-
             for file in files:
                 p = Path(file)
-
                 if p.exists():
                     data = json.loads(p.read_text())
-
                     removed = []
-
-                for key in ["os", "cpu"]:
-                    if key in data:
-                        removed.append(key)
-                        del data[key]
-
-                p.write_text(
-                    json.dumps(data, indent=2) + "\n"
-                )
-
-                print(f"{file}: removed {removed}")
+                    for key in ["os", "cpu"]:
+                        if key in data:
+                            removed.append(key)
+                            del data[key]
+                    p.write_text(json.dumps(data, indent=2) + "\n")
+                    print(f"{file}: removed {removed}")
             PY
 
-            set -eux
-
+            # Build and package
             cd /home
-
             git clone https://github.com/CodebuffAI/codebuff.git
             cd codebuff
-
             bun install
-
             cd freebuff
-
             bun cli/build.ts 0.0.124
-
             npm pack
-
             cp *.tgz /artifacts/
-
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
