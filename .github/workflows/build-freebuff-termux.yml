@@ -52,7 +52,7 @@ jobs:
             export BUN_INSTALL="$HOME/.bun"
             export PATH="$BUN_INSTALL/bin:$PATH"
 
-          bun --version
+            bun --version
       - name: Patch platform restrictions
           run: |
             python - <<'PY'
@@ -85,7 +85,7 @@ jobs:
                 print(f"{file}: removed {removed}")
             PY
 
-          run: |
+            run: |
             set -eux
 
             cd /home
