@@ -85,7 +85,6 @@ jobs:
                 print(f"{file}: removed {removed}")
             PY
 
-            run: |
             set -eux
 
             cd /home
